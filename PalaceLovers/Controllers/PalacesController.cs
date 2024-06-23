@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PalaceLovers.Context;
 using PalaceLovers.Models;
+using PalaceLovers.Services;
 
 namespace PalaceLovers.Controllers
 {
@@ -11,22 +11,26 @@ namespace PalaceLovers.Controllers
     public class PalacesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ImageService _imageService;
 
-        public PalacesController(ApplicationDbContext context)
+        public PalacesController(ApplicationDbContext context, ImageService imageService)
         {
             _context = context;
+            _imageService = imageService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Palace>>> GetPalaces()
         {
-            return await _context.Palaces.ToListAsync();
+            return await _context.Palaces.Include(p => p.Galleries).ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Palace>> GetPalace(int id)
         {
-            var palace = await _context.Palaces.FindAsync(id);
+            var palace = await _context.Palaces
+                .Include(p => p.Galleries)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (palace == null)
             {
@@ -36,44 +40,88 @@ namespace PalaceLovers.Controllers
             return palace;
         }
 
-        [HttpPost("postPalace")]
-        public async Task<IActionResult> PostPalace([FromBody] Palace palace)
+        [HttpPost]
+        public async Task<ActionResult<Palace>> AddPalace([FromForm] PalaceDto palaceDto)
         {
-            if (!ModelState.IsValid)
+            var palace = new Palace
             {
-                return BadRequest(ModelState);
+                Name = palaceDto.Name,
+                Location = palaceDto.Location,
+                History = palaceDto.History,
+                YearBuilt = palaceDto.YearBuilt,
+                VisitingHours = palaceDto.VisitingHours,
+                Galleries = new List<Gallery>()
+            };
+
+            if (palaceDto.Images != null && palaceDto.Images.Count > 0)
+            {
+                foreach (var image in palaceDto.Images)
+                {
+                    var imageUrl = await _imageService.SaveImageAsync(image);
+                    palace.Galleries.Add(new Gallery { ImageUrl = imageUrl, UploadDate = DateTime.Now });
+                }
             }
 
             _context.Palaces.Add(palace);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetPalace), new { id = palace.Id }, palace);
+            return CreatedAtAction("GetPalace", new { id = palace.Id }, palace);
+        }
+
+        [HttpPost("{palaceId}/images")]
+        public async Task<IActionResult> UploadImages(int palaceId, List<IFormFile> images)
+        {
+            var palace = await _context.Palaces.Include(p => p.Galleries).FirstOrDefaultAsync(p => p.Id == palaceId);
+            if (palace == null)
+            {
+                return NotFound();
+            }
+
+            foreach (var image in images)
+            {
+                if (image.Length > 0)
+                {
+                    var imageUrl = await _imageService.SaveImageAsync(image);
+                    palace.Galleries.Add(new Gallery { ImageUrl = imageUrl });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(palace);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPalace(int id, Palace palace)
+        public async Task<IActionResult> PutPalace(int id, [FromForm] PalaceDto palaceDto)
         {
-            if (id != palace.Id)
+            var palace = await _context.Palaces.Include(p => p.Galleries).FirstOrDefaultAsync(p => p.Id == id);
+            if (palace == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(palace).State = EntityState.Modified;
+            palace.Name = palaceDto.Name;
+            palace.Location = palaceDto.Location;
+            palace.History = palaceDto.History;
+            palace.YearBuilt = palaceDto.YearBuilt;
+            palace.VisitingHours = palaceDto.VisitingHours;
+
+            if (palaceDto.Images != null && palaceDto.Images.Count > 0)
+            {
+                foreach (var image in palaceDto.Images)
+                {
+                    var imageUrl = await _imageService.SaveImageAsync(image);
+                    palace.Galleries.Add(new Gallery { ImageUrl = imageUrl, UploadDate = DateTime.Now });
+                }
+            }
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!PalaceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                // Log the error
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
             }
 
             return NoContent();
@@ -100,4 +148,3 @@ namespace PalaceLovers.Controllers
         }
     }
 }
-

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Localization;
 using System;
 using Newtonsoft.Json;
 using PalaceLovers.Data;
+using PalaceLovers.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +62,9 @@ builder.Services.AddCors(options =>
                           .AllowAnyHeader());
 });
 
+// Register ImageService
+builder.Services.AddScoped<ImageService>();
+
 var app = builder.Build();
 
 // Seed data
@@ -92,8 +96,8 @@ app.UseRouting();
 
 app.UseCors("CorsPolicy");
 
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthentication(); // Ensure these are uncommented if authentication is needed
+//app.UseAuthorization();
 
 app.UseRequestLocalization();
 
