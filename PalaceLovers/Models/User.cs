@@ -12,7 +12,7 @@ namespace PalaceLovers.Models
         public DateTime CreateDate { get; set; }
         public DateTime LastLoginDate { get; set; }
 
-        // Define the relationship with Ratings
-        public ICollection<Rating> Ratings { get; set; }
+        // Define the relationship with Palaces
+        public ICollection<Palace> Palaces { get; set; }
     }
 }

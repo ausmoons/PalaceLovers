@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PalaceLovers.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class FixCascadePaths : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,24 +51,6 @@ namespace PalaceLovers.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Palaces",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    History = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    YearBuilt = table.Column<int>(type: "int", nullable: false),
-                    ImageURL = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    VisitingHours = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Palaces", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -178,19 +160,42 @@ namespace PalaceLovers.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Galleries",
+                name: "Palaces",
                 columns: table => new
                 {
-                    GalleryId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PalaceId = table.Column<int>(type: "int", nullable: false),
-                    ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UploadDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    History = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    YearBuilt = table.Column<int>(type: "int", nullable: false),
+                    VisitingHours = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Galleries", x => x.GalleryId);
+                    table.PrimaryKey("PK_Palaces", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Palaces_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Galleries",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PalaceId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Galleries", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Galleries_Palaces_PalaceId",
                         column: x => x.PalaceId,
@@ -225,30 +230,7 @@ namespace PalaceLovers.Migrations
                         column: x => x.PalaceId,
                         principalTable: "Palaces",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VisitingHours",
-                columns: table => new
-                {
-                    VisitingHoursId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PalaceId = table.Column<int>(type: "int", nullable: false),
-                    DayOfWeek = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    OpenTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    CloseTime = table.Column<TimeSpan>(type: "time", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VisitingHours", x => x.VisitingHoursId);
-                    table.ForeignKey(
-                        name: "FK_VisitingHours_Palaces_PalaceId",
-                        column: x => x.PalaceId,
-                        principalTable: "Palaces",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -296,6 +278,11 @@ namespace PalaceLovers.Migrations
                 column: "PalaceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Palaces_UserId",
+                table: "Palaces",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Ratings_PalaceId",
                 table: "Ratings",
                 column: "PalaceId");
@@ -304,11 +291,6 @@ namespace PalaceLovers.Migrations
                 name: "IX_Ratings_UserId",
                 table: "Ratings",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VisitingHours_PalaceId",
-                table: "VisitingHours",
-                column: "PalaceId");
         }
 
         /// <inheritdoc />
@@ -336,16 +318,13 @@ namespace PalaceLovers.Migrations
                 name: "Ratings");
 
             migrationBuilder.DropTable(
-                name: "VisitingHours");
-
-            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Palaces");
 
             migrationBuilder.DropTable(
-                name: "Palaces");
+                name: "AspNetUsers");
         }
     }
 }

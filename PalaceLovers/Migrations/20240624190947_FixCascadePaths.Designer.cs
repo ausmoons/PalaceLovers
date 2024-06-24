@@ -12,8 +12,8 @@ using PalaceLovers.Context;
 namespace PalaceLovers.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240622174247_AddGalleryPalaceRelationship")]
-    partial class AddGalleryPalaceRelationship
+    [Migration("20240624190947_FixCascadePaths")]
+    partial class FixCascadePaths
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,6 +204,10 @@ namespace PalaceLovers.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("VisitingHours")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -212,6 +216,8 @@ namespace PalaceLovers.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Palaces");
                 });
@@ -388,16 +394,27 @@ namespace PalaceLovers.Migrations
                     b.Navigation("Palace");
                 });
 
+            modelBuilder.Entity("PalaceLovers.Models.Palace", b =>
+                {
+                    b.HasOne("PalaceLovers.Models.User", "User")
+                        .WithMany("Palaces")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("PalaceLovers.Models.Rating", b =>
                 {
                     b.HasOne("PalaceLovers.Models.Palace", "Palace")
                         .WithMany("Ratings")
                         .HasForeignKey("PalaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PalaceLovers.Models.User", "User")
-                        .WithMany("Ratings")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -416,7 +433,7 @@ namespace PalaceLovers.Migrations
 
             modelBuilder.Entity("PalaceLovers.Models.User", b =>
                 {
-                    b.Navigation("Ratings");
+                    b.Navigation("Palaces");
                 });
 #pragma warning restore 612, 618
         }

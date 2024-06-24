@@ -22,7 +22,18 @@ namespace PalaceLovers.Data
                 if (!roleExist)
                 {
                     roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
-                    logger.LogInformation($"Role {roleName} created.");
+                    if (roleResult.Succeeded)
+                    {
+                        logger.LogInformation($"Role {roleName} created.");
+                    }
+                    else
+                    {
+                        logger.LogError($"Failed to create role {roleName}:");
+                        foreach (var error in roleResult.Errors)
+                        {
+                            logger.LogError(error.Description);
+                        }
+                    }
                 }
                 else
                 {
@@ -51,8 +62,19 @@ namespace PalaceLovers.Data
                     var createAdminUser = await userManager.CreateAsync(adminUser, adminPassword);
                     if (createAdminUser.Succeeded)
                     {
-                        await userManager.AddToRoleAsync(adminUser, "Admin");
-                        logger.LogInformation("Admin user created and assigned to Admin role.");
+                        var addToRoleResult = await userManager.AddToRoleAsync(adminUser, "Admin");
+                        if (addToRoleResult.Succeeded)
+                        {
+                            logger.LogInformation("Admin user created and assigned to Admin role.");
+                        }
+                        else
+                        {
+                            logger.LogError("Failed to assign admin user to Admin role:");
+                            foreach (var error in addToRoleResult.Errors)
+                            {
+                                logger.LogError(error.Description);
+                            }
+                        }
                     }
                     else
                     {

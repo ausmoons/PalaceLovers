@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PalaceLovers.Context;
 using PalaceLovers.Models;
 using PalaceLovers.Services;
+using System.Security.Claims;
 
 namespace PalaceLovers.Controllers
 {
@@ -40,9 +42,12 @@ namespace PalaceLovers.Controllers
             return palace;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Palace>> AddPalace([FromForm] PalaceDto palaceDto)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             var palace = new Palace
             {
                 Name = palaceDto.Name,
@@ -50,7 +55,8 @@ namespace PalaceLovers.Controllers
                 History = palaceDto.History,
                 YearBuilt = palaceDto.YearBuilt,
                 VisitingHours = palaceDto.VisitingHours,
-                Galleries = new List<Gallery>()
+                Galleries = new List<Gallery>(),
+                UserId = userId // Assign the userId to the palace
             };
 
             if (palaceDto.Images != null && palaceDto.Images.Count > 0)
@@ -68,28 +74,7 @@ namespace PalaceLovers.Controllers
             return CreatedAtAction("GetPalace", new { id = palace.Id }, palace);
         }
 
-        [HttpPost("{palaceId}/images")]
-        public async Task<IActionResult> UploadImages(int palaceId, List<IFormFile> images)
-        {
-            var palace = await _context.Palaces.Include(p => p.Galleries).FirstOrDefaultAsync(p => p.Id == palaceId);
-            if (palace == null)
-            {
-                return NotFound();
-            }
-
-            foreach (var image in images)
-            {
-                if (image.Length > 0)
-                {
-                    var imageUrl = await _imageService.SaveImageAsync(image);
-                    palace.Galleries.Add(new Gallery { ImageUrl = imageUrl });
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok(palace);
-        }
-
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPalace(int id, [FromForm] PalaceDto palaceDto)
         {
@@ -97,6 +82,14 @@ namespace PalaceLovers.Controllers
             if (palace == null)
             {
                 return NotFound();
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Admin");
+
+            if (palace.UserId != userId && !isAdmin)
+            {
+                return Forbid();
             }
 
             palace.Name = palaceDto.Name;
@@ -127,6 +120,7 @@ namespace PalaceLovers.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePalace(int id)
         {
@@ -134,6 +128,14 @@ namespace PalaceLovers.Controllers
             if (palace == null)
             {
                 return NotFound();
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Admin");
+
+            if (palace.UserId != userId && !isAdmin)
+            {
+                return Forbid();
             }
 
             _context.Palaces.Remove(palace);

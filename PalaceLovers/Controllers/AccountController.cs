@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using PalaceLovers.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace PalaceLovers.Controllers
 {
@@ -11,12 +15,14 @@ namespace PalaceLovers.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger<AccountController> _logger;
+        private readonly JwtSettings _jwtSettings;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AccountController> logger)
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AccountController> logger, JwtSettings jwtSettings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _jwtSettings = jwtSettings;
         }
 
         [HttpPost("login")]
@@ -36,8 +42,20 @@ namespace PalaceLovers.Controllers
             var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                // Generate a JWT token or any other method to return on successful login
-                return Ok(new { Token = "dummy-jwt-token" });
+                var token = GenerateJwtToken(user);
+                var roles = await _userManager.GetRolesAsync(user);
+                var userData = new
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Roles = roles
+                };
+
+                return Ok(new
+                {
+                    Token = token,
+                    User = userData
+                });
             }
             else
             {
@@ -66,7 +84,8 @@ namespace PalaceLovers.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "User");
-                return Ok(new { Token = "dummy-token", Message = "User registered successfully" }); // Replace "dummy-token" with your actual token logic
+                var token = GenerateJwtToken(user);
+                return Ok(new { Token = token, Message = "User registered successfully" });
             }
 
             foreach (var error in result.Errors)
@@ -77,6 +96,38 @@ namespace PalaceLovers.Controllers
 
             return BadRequest(ModelState);
         }
-    }
 
+        private string GenerateJwtToken(User user)
+        {
+            try
+            {
+                var claims = new[]
+                   {
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                        new Claim("uid", user.Id.ToString())
+                    };
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: _jwtSettings.Issuer,
+                    audience: _jwtSettings.Audience,
+                    claims: claims,
+                    expires: DateTime.Now.AddHours(2),
+                    signingCredentials: creds
+                );
+
+                return new JwtSecurityTokenHandler().WriteToken(token);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+
+        }
+    }
 }

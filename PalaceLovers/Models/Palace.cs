@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PalaceLovers.Models
 {
@@ -22,5 +23,11 @@ namespace PalaceLovers.Models
         public List<Gallery> Galleries { get; set; } = new List<Gallery>();
 
         public string VisitingHours { get; set; }
+
+        // Foreign key property for User
+        public string UserId { get; set; }
+
+        // Navigation property for User
+        public User User { get; set; }
     }
 }
