@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using PalaceLovers.Context;
 using PalaceLovers.Models;
 using PalaceLovers.Services;
@@ -24,7 +25,7 @@ namespace PalaceLovers.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Palace>>> GetPalaces()
         {
-            return await _context.Palaces.Include(p => p.Galleries).ToListAsync();
+            return await _context.Palaces.Include(p => p.Galleries).Include(p => p.Ratings).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -32,6 +33,7 @@ namespace PalaceLovers.Controllers
         {
             var palace = await _context.Palaces
                 .Include(p => p.Galleries)
+                .Include(p => p.Ratings)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (palace == null)
@@ -52,6 +54,8 @@ namespace PalaceLovers.Controllers
             {
                 Name = palaceDto.Name,
                 Location = palaceDto.Location,
+                Latitude = palaceDto.Latitude,
+                Longitude = palaceDto.Longitude,
                 History = palaceDto.History,
                 YearBuilt = palaceDto.YearBuilt,
                 VisitingHours = palaceDto.VisitingHours,
@@ -78,9 +82,13 @@ namespace PalaceLovers.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPalace(int id, [FromForm] PalaceDto palaceDto)
         {
+            Console.WriteLine($"PutPalace called with id: {id}");
+            Console.WriteLine($"PalaceDto: {JsonConvert.SerializeObject(palaceDto)}");
+
             var palace = await _context.Palaces.Include(p => p.Galleries).FirstOrDefaultAsync(p => p.Id == id);
             if (palace == null)
             {
+                Console.WriteLine("Palace not found");
                 return NotFound();
             }
 
@@ -89,15 +97,19 @@ namespace PalaceLovers.Controllers
 
             if (palace.UserId != userId && !isAdmin)
             {
+                Console.WriteLine("User not authorized");
                 return Forbid();
             }
 
             palace.Name = palaceDto.Name;
             palace.Location = palaceDto.Location;
+            palace.Latitude = palaceDto.Latitude;
+            palace.Longitude = palaceDto.Longitude;
             palace.History = palaceDto.History;
             palace.YearBuilt = palaceDto.YearBuilt;
             palace.VisitingHours = palaceDto.VisitingHours;
 
+            // Handle new images if provided
             if (palaceDto.Images != null && palaceDto.Images.Count > 0)
             {
                 foreach (var image in palaceDto.Images)
@@ -110,10 +122,11 @@ namespace PalaceLovers.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                Console.WriteLine("Palace updated successfully");
             }
             catch (Exception ex)
             {
-                // Log the error
+                Console.WriteLine($"Error saving palace: {ex.Message}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error");
             }
 

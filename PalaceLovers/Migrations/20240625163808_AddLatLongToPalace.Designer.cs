@@ -12,8 +12,8 @@ using PalaceLovers.Context;
 namespace PalaceLovers.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240624190947_FixCascadePaths")]
-    partial class FixCascadePaths
+    [Migration("20240625163808_AddLatLongToPalace")]
+    partial class AddLatLongToPalace
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -195,9 +195,15 @@ namespace PalaceLovers.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()

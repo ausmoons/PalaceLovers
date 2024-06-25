@@ -2,13 +2,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using PalaceLovers.Context;
 using PalaceLovers.Data;
 using PalaceLovers.Models;
 using PalaceLovers.Services;
 using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson(options =>
     {
-        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
     });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -112,11 +114,15 @@ using (var scope = app.Services.CreateScope())
         if (adminUser == null)
         {
             adminUser = new User { UserName = adminEmail, Email = adminEmail, CustomUsername = "Admin" };
-            await userManager.CreateAsync(adminUser, "Admin123!");
-            await userManager.AddToRoleAsync(adminUser, "Admin");
+            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
         }
 
-        SeedData.Initialize(services, logger).Wait();
+        // Initialize Seed Data
+        await SeedData.Initialize(services, logger);
     }
     catch (Exception ex)
     {
@@ -140,7 +146,7 @@ app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseRequestLocalization();
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 app.MapControllerRoute(
     name: "default",
@@ -149,3 +155,4 @@ app.MapControllerRoute(
 app.MapControllers();
 
 app.Run();
+

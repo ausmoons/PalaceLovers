@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PalaceLovers.Models
 {
@@ -13,6 +12,9 @@ namespace PalaceLovers.Models
 
         [Required]
         public string Location { get; set; }
+        public double Latitude { get; set; } 
+
+        public double Longitude { get; set; }
 
         public string History { get; set; }
 

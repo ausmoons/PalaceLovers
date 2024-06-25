@@ -42,8 +42,9 @@ namespace PalaceLovers.Controllers
             var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, false, lockoutOnFailure: false);
             if (result.Succeeded)
             {
-                var token = GenerateJwtToken(user);
                 var roles = await _userManager.GetRolesAsync(user);
+                var token = GenerateJwtToken(user, roles);
+
                 var userData = new
                 {
                     Id = user.Id,
@@ -84,7 +85,8 @@ namespace PalaceLovers.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "User");
-                var token = GenerateJwtToken(user);
+                var roles = new List<string> { "User" };
+                var token = GenerateJwtToken(user, roles);
                 return Ok(new { Token = token, Message = "User registered successfully" });
             }
 
@@ -97,17 +99,20 @@ namespace PalaceLovers.Controllers
             return BadRequest(ModelState);
         }
 
-        private string GenerateJwtToken(User user)
+        private string GenerateJwtToken(User user, IList<string> roles)
         {
             try
             {
-                var claims = new[]
-                   {
-                        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                        new Claim("uid", user.Id.ToString())
-                    };
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim("uid", user.Id.ToString())
+                };
+
+                // Add roles as claims
+                claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -127,7 +132,6 @@ namespace PalaceLovers.Controllers
                 Console.WriteLine(ex.Message);
                 throw;
             }
-
         }
     }
 }

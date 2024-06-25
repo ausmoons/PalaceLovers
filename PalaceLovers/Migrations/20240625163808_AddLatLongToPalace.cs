@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PalaceLovers.Migrations
 {
     /// <inheritdoc />
-    public partial class FixCascadePaths : Migration
+    public partial class AddLatLongToPalace : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -167,6 +167,8 @@ namespace PalaceLovers.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Latitude = table.Column<double>(type: "float", nullable: false),
+                    Longitude = table.Column<double>(type: "float", nullable: false),
                     History = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     YearBuilt = table.Column<int>(type: "int", nullable: false),
                     VisitingHours = table.Column<string>(type: "nvarchar(max)", nullable: false),
