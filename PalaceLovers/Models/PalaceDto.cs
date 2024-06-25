@@ -12,5 +12,6 @@ namespace PalaceLovers.Models
         public int YearBuilt { get; set; }
         public string VisitingHours { get; set; }
         public List<IFormFile> Images { get; set; } = new List<IFormFile>();
+        public List<string> ImagesToRemove { get; set; } = new List<string>();
     }
 }

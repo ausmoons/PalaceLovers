@@ -109,7 +109,19 @@ namespace PalaceLovers.Controllers
             palace.YearBuilt = palaceDto.YearBuilt;
             palace.VisitingHours = palaceDto.VisitingHours;
 
-            // Handle new images if provided
+            // Remove specified images
+            if (palaceDto.ImagesToRemove != null && palaceDto.ImagesToRemove.Count > 0)
+            {
+                foreach (var imageUrl in palaceDto.ImagesToRemove)
+                {
+                    var gallery = palace.Galleries.FirstOrDefault(g => g.ImageUrl == imageUrl);
+                    if (gallery != null)
+                    {
+                        _context.Galleries.Remove(gallery);
+                    }
+                }
+            }
+
             if (palaceDto.Images != null && palaceDto.Images.Count > 0)
             {
                 foreach (var image in palaceDto.Images)
