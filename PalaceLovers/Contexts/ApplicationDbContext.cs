@@ -19,11 +19,16 @@ namespace PalaceLovers.Context
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Palace>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Palaces)
-                .HasForeignKey(p => p.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Palace>(entity =>
+            {
+                entity.Property(p => p.AddedDate)
+                    .HasDefaultValueSql("GETDATE()");
+
+                entity.HasOne(p => p.User)
+                    .WithMany(u => u.Palaces)
+                    .HasForeignKey(p => p.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<Rating>()
                 .HasOne(r => r.Palace)

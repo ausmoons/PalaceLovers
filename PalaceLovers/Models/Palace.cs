@@ -31,5 +31,6 @@ namespace PalaceLovers.Models
 
         // Navigation property for User
         public User User { get; set; }
+        public DateTime AddedDate { get; set; } = DateTime.Now;
     }
 }

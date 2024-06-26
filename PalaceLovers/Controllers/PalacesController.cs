@@ -22,11 +22,6 @@ namespace PalaceLovers.Controllers
             _imageService = imageService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Palace>>> GetPalaces()
-        {
-            return await _context.Palaces.Include(p => p.Galleries).Include(p => p.Ratings).ToListAsync();
-        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Palace>> GetPalace(int id)
@@ -42,6 +37,27 @@ namespace PalaceLovers.Controllers
             }
 
             return palace;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Palace>>> GetPalaces(string sortBy = "name")
+        {
+            IQueryable<Palace> query = _context.Palaces.Include(p => p.Galleries).Include(p => p.Ratings);
+
+            switch (sortBy.ToLower())
+            {
+                case "rating":
+                    query = query.OrderByDescending(p => p.Ratings.Any() ? p.Ratings.Average(r => r.Score) : 0);
+                    break;
+                case "date":
+                    query = query.OrderByDescending(p => p.AddedDate);
+                    break;
+                default:
+                    query = query.OrderBy(p => p.Name);
+                    break;
+            }
+
+            return await query.ToListAsync();
         }
 
         [Authorize]
@@ -60,7 +76,7 @@ namespace PalaceLovers.Controllers
                 YearBuilt = palaceDto.YearBuilt,
                 VisitingHours = palaceDto.VisitingHours,
                 Galleries = new List<Gallery>(),
-                UserId = userId // Assign the userId to the palace
+                UserId = userId
             };
 
             if (palaceDto.Images != null && palaceDto.Images.Count > 0)
@@ -109,7 +125,6 @@ namespace PalaceLovers.Controllers
             palace.YearBuilt = palaceDto.YearBuilt;
             palace.VisitingHours = palaceDto.VisitingHours;
 
-            // Remove specified images
             if (palaceDto.ImagesToRemove != null && palaceDto.ImagesToRemove.Count > 0)
             {
                 foreach (var imageUrl in palaceDto.ImagesToRemove)
@@ -149,7 +164,11 @@ namespace PalaceLovers.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePalace(int id)
         {
-            var palace = await _context.Palaces.FindAsync(id);
+            var palace = await _context.Palaces
+                .Include(p => p.Galleries)
+                .Include(p => p.Ratings)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (palace == null)
             {
                 return NotFound();
@@ -163,8 +182,20 @@ namespace PalaceLovers.Controllers
                 return Forbid();
             }
 
+            // Remove related entities first
+            _context.Galleries.RemoveRange(palace.Galleries);
+            _context.Ratings.RemoveRange(palace.Ratings);
+
             _context.Palaces.Remove(palace);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
 
             return NoContent();
         }
