@@ -29,5 +29,16 @@
     "sortByRating": "Sort By Rating",
     "sortByDate": "Sort By Date",
     "filter": "Filter",
-    "submit": "submit"
+    "submit": "submit",
+    "email": "email",
+    "username": "username",
+    "password": "password",
+    "confirmpassword": "Confirm password",
+    "images": "Images",
+    "adminview": "Administrator view",
+    "users": "Users",
+    "palacesadded": "Palace added",
+    "comments": "Comments",
+    "yourRating": "Your Rating",
+    "score": "Score"
 }

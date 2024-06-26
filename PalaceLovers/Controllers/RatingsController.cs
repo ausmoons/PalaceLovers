@@ -18,6 +18,21 @@ namespace PalaceLovers.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Rating>>> GetAllRatings()
+        {
+            var ratings = await _context.Ratings
+                .Include(r => r.User)
+                .ToListAsync();
+
+            if (ratings == null)
+            {
+                return NotFound();
+            }
+
+            return ratings;
+        }
+
         [HttpGet("{palaceId}")]
         public async Task<ActionResult<IEnumerable<Rating>>> GetRatings(int palaceId)
         {

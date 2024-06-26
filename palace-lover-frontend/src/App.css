@@ -1,0 +1,24 @@
+.navbar-brand {
+    font-size: 2.5rem;
+    font-weight: bold;
+  }
+  
+  .nav-link {
+    font-size: 2rem;
+  }
+
+  .large-text {
+    font-size: 1.5rem;
+  }
+  
+  .extra-large-text {
+    font-size: 2rem;
+  }
+
+  .extra-large-text-2 {
+    font-size: 3rem;
+  }
+
+  .large-text-1 {
+    font-size: 1.3rem;
+  }

@@ -12,7 +12,7 @@ namespace PalaceLovers.Models
         public Palace Palace { get; set; }
 
         [Required]
-        public string UserId { get; set; } // Ensure this matches the User's primary key type
+        public string UserId { get; set; }
         public User User { get; set; }
 
         [Required]

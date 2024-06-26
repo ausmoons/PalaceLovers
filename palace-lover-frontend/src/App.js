@@ -9,6 +9,7 @@ import Header from './components/Header';
 import PalaceDetails from './components/PalaceDetails';
 import { useAuth } from './context/AuthContext';
 import AdminView from './views/AdminView';
+import './App.css';
 
 const App = () => {
   const { user, logout } = useAuth();

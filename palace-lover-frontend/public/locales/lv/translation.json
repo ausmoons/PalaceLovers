@@ -29,5 +29,16 @@
   "sortByRating": "Šķirot pēc vērtējuma",
   "sortByDate": "Šķirot pēc datuma",
   "filter": "Sķirot",
-  "submit": "Pievienot"
+  "submit": "Pievienot",
+  "email": "E-pasts",
+  "username": "Lietotājvārds",
+  "password": "Parole",
+  "confirmpassword": "Apstirprināt paroli",
+  "images": "Bildes",
+  "adminview": "Administratora skats",
+  "users": "Lietotāji",
+  "palacesadded": "Pievienotās pilis",
+  "comments": "Komentāri",
+  "yourRating": "Jūsu vērtējums",
+  "score": "Vērtējums"
 }

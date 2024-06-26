@@ -71,15 +71,15 @@ const MainPage = () => {
       <Row className="mb-4 align-items-center">
         <Col md={3} />
         <Col md={6} className="d-flex justify-content-center align-items-center">
-          <h2>{t('palaces')}</h2>
+          <h2 className="extra-large-text-2">{t('palaces')}</h2>
         </Col>
         <Col md={3} className="d-flex justify-content-end">
-          <Form.Select value={sortOrder} onChange={handleSortChange} style={{ width: '200px', marginLeft: '10px' }}>
+          <Form.Select value={sortOrder} onChange={handleSortChange} style={{ width: '200px', marginLeft: '10px' }} className="large-text-1">
             <option value="name">{t('sortByName')}</option>
             <option value="rating">{t('sortByRating')}</option>
             <option value="date">{t('sortByDate')}</option>
           </Form.Select>
-          <Button variant="primary" onClick={handleFilterClick} style={{ marginLeft: '10px' }}>{t('filter')}</Button>
+          <Button variant="primary" onClick={handleFilterClick} style={{ marginLeft: '10px' }} className="large-text">{t('filter')}</Button>
         </Col>
       </Row>
       <Row>
