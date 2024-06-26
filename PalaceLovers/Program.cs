@@ -60,10 +60,9 @@ builder.Services.AddCors(options =>
                           .AllowAnyHeader());
 });
 
-// Register ImageService
+
 builder.Services.AddScoped<ImageService>();
 
-// Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
 builder.Services.AddSingleton(jwtSettings);
 
@@ -88,7 +87,6 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Seed data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
