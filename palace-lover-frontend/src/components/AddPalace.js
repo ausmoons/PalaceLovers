@@ -32,7 +32,6 @@ const AddPalace = () => {
   const geocodeLocation = async (address) => {
     try {
       const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
-      console.log('Geocoding response:', response.data);
       if (response.data.length > 0) {
         const { lat, lon } = response.data[0];
         return { latitude: lat, longitude: lon };

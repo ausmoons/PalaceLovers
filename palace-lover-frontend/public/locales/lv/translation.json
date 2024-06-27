@@ -40,5 +40,7 @@
   "palacesadded": "Pievienotās pilis",
   "comments": "Komentāri",
   "yourRating": "Jūsu vērtējums",
-  "score": "Vērtējums"
+  "score": "Vērtējums",
+  "pleaseAddStars": "Lūdzu pievieno zvaignzes",
+  "Passwords do not match!": "Paroles nesakrīt"
 }

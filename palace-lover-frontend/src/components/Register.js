@@ -3,12 +3,14 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-bootstrap';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -16,21 +18,24 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setError(t('Passwords do not match!'));
       return;
     }
     try {
       const response = await axios.post('https://localhost:7251/api/account/register', { email, password, username });
+      console.log('Response data:', response.data);
       login(response.data);
       navigate('/');
     } catch (error) {
       console.error('Error registering:', error);
+      setError(t('Error registering. Please try again.'));
     }
   };
 
   return (
     <div className="container mt-4">
       <h2 className="display-4 mb-4 extra-large-text-2">{t('register')}</h2>
+      {error && <Alert variant="danger">{error}</Alert>}
       <form onSubmit={handleSubmit}>
         <div className="form-group mb-4">
           <label htmlFor="email" className="form-label large-text">{t('email')}</label>

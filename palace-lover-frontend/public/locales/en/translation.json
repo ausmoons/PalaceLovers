@@ -40,5 +40,7 @@
     "palacesadded": "Palace added",
     "comments": "Comments",
     "yourRating": "Your Rating",
-    "score": "Score"
+    "score": "Score",
+    "pleaseAddStars": "Please add starts",
+    "Passwords do not match!": "Passwords do not match!"
 }

@@ -58,7 +58,6 @@ const EditPalace = () => {
   const geocodeLocation = async (address) => {
     try {
       const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
-      console.log('Geocoding response:', response.data);
       if (response.data.length > 0) {
         const { lat, lon } = response.data[0];
         return { latitude: lat, longitude: lon };
@@ -104,7 +103,6 @@ const EditPalace = () => {
 
       const token = localStorage.getItem('token');
       console.log('Form Data:', Array.from(formData.entries()));
-      console.log('Authorization Token:', token);
 
       await axios.put(`https://localhost:7251/api/palaces/${id}`, formData, {
         headers: {
