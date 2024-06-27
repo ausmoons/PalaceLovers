@@ -16,7 +16,6 @@ const MainPage = () => {
   const fetchPalaces = async () => {
     try {
       const response = await axios.get(`https://localhost:7251/api/palaces?sortBy=${sortOrder}`);
-      console.log('Palaces fetched:', response.data);
       setPalaces(response.data);
     } catch (error) {
       console.error('Error fetching palaces:', error);
@@ -54,11 +53,9 @@ const MainPage = () => {
       console.log('No ratings provided');
       return 0;
     }
-    console.log('Ratings:', ratings);
     if (ratings.length === 0) return 0;
     const total = ratings.reduce((acc, rating) => acc + rating.score, 0);
     const average = total / ratings.length;
-    console.log(`Average rating for palace: ${average}`);
     return average;
   };
 
@@ -92,7 +89,7 @@ const MainPage = () => {
               <Card.Body>
                 <Card.Title>{palace.name}</Card.Title>
                 <Card.Text>{palace.history.slice(0, 100)}...</Card.Text>
-                <Card.Text><small className="text-muted">{t('built')}: {palace.yearBuilt}</small></Card.Text>
+                <Card.Text><small className="text-muted">{t('yearBuilt')}: {palace.yearBuilt}</small></Card.Text>
                 <div>
                   <Rating
                     value={calculateAverageRating(palace.ratings)}

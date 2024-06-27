@@ -8,7 +8,7 @@ import EditPalace from './components/EditPalace';
 import Header from './components/Header';
 import PalaceDetails from './components/PalaceDetails';
 import { useAuth } from './context/AuthContext';
-import AdminView from './views/AdminView';
+import AdminView from './components/AdminView';
 import './App.css';
 
 const App = () => {

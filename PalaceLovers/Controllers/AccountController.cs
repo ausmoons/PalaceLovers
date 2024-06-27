@@ -111,7 +111,6 @@ namespace PalaceLovers.Controllers
                     new Claim("uid", user.Id.ToString())
                 };
 
-                // Add roles as claims
                 claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
@@ -121,7 +120,7 @@ namespace PalaceLovers.Controllers
                     issuer: _jwtSettings.Issuer,
                     audience: _jwtSettings.Audience,
                     claims: claims,
-                    expires: DateTime.Now.AddHours(2),
+                    expires: DateTime.Now.AddHours(10),
                     signingCredentials: creds
                 );
 
